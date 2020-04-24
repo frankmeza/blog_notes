@@ -1,3 +1,5 @@
+#![allow(proc_macro_derive_resolution_fallback)]
+
 extern crate actix;
 extern crate tokio_codec;
 extern crate tokio_io;
