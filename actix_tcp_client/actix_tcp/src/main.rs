@@ -1,9 +1,13 @@
 extern crate actix;
+extern crate tokio_codec;
+extern crate tokio_io;
 
 use actix::{
     actors::{Connect, Connector},
     prelude::*,
 };
+use tokio_codec::{FramedRead, LinesCodec};
+use tokio_io::AsyncRead;
 
 struct TcpClientActor;
 
@@ -19,6 +23,10 @@ impl Actor for TcpClientActor {
             .map(|res, _act, ctx| match res {
                 Ok(stream) => {
                     println!("very success: {:?}", &stream);
+
+                    let (r, w) = stream.split();
+                    let line_reader = FramedRead::new(r, LinesCodec::new());
+                    ctx.add_stream(line_reader);
                 }
                 Err(err) => {
                     println!("very virus: {}", err);
@@ -30,6 +38,12 @@ impl Actor for TcpClientActor {
                 ctx.stop();
             })
             .wait(ctx);
+    }
+}
+
+impl StreamHandler<String, std::io::Error> for TcpClientActor {
+    fn handle(&mut self, line: String, _ctx: &mut Self::Context) {
+        println!("{}", line);
     }
 }
 

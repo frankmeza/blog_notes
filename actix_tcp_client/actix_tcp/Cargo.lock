@@ -40,6 +40,8 @@ name = "actix_tcp"
 version = "0.1.0"
 dependencies = [
  "actix",
+ "tokio-codec",
+ "tokio-io",
 ]
 
 [[package]]

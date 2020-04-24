@@ -96,5 +96,4 @@ They have the same code but since the error classes are different, they can't ea
 
 Finally, we block the current thread using the `wait()` method until the `Future` is resolved.
 
-Great! We have successfully opened up a TCP connection to the `towel.blinkenlights.nl` server  
-
+Great! We have successfully opened up a TCP connection to the `towel.blinkenlights.nl` server for the STAR WARS ascii show
