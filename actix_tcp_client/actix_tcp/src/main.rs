@@ -39,7 +39,9 @@ impl Handler<ReceivedLine> for ConsoleLogger {
 // impl Actor for TcpClientActor
 // impl StreamHandler<String, std::io::Error> for TcpClientActor
 
-struct TcpClientActor;
+pub struct TcpClientActor {
+    recipient: Recipient<Syn, ReceivedLine>,
+}
 
 impl Actor for TcpClientActor {
     type Context = Context<Self>;
@@ -73,14 +75,20 @@ impl Actor for TcpClientActor {
 
 impl StreamHandler<String, std::io::Error> for TcpClientActor {
     fn handle(&mut self, line: String, _ctx: &mut Self::Context) {
-        println!("{}", line);
+        if let Err(error) = self.recipient.do_send(ReceivedLine { line }) {
+            println!("do_send failed: {}", error);
+        }
     }
 }
 
 fn main() {
     let system = actix::System::new("tcp_test");
 
-    let _tcp_client: Addr<Syn, _> = Arbiter::start(|_| TcpClientActor);
+    let _logger: Addr<Syn, _> = Arbiter::start(|_| ConsoleLogger);
+
+    let _tcp_client: Addr<Syn, _> = Arbiter::start(|_| TcpClientActor {
+        recipient: _logger.recipient(),
+    });
 
     system.run();
 }

@@ -129,3 +129,44 @@ impl Handler<ReceivedLine> for ConsoleLogger {
     }
 }
 ```
+
+Next, we adjust our `TcpClientActor` implementation to no longer print messages by itself but instead forward them to the second actor.  
+
+For that the `TcpClientActor` needs to know where to send them. We could save the `Addr<_, ConsoleLogger>` instance in the `TcpClientActor` struct, but that would create a tight coupling between those actors, and we want the `TcpClientActor` implementation to be as generic as possible.
+
+The more generic solution is to use the `Recipient` struct of actix:
+
+```rust
+struct TcpClientActor {
+    recipient: Recipient<Syn, ReceivedLine>,
+}
+Afterwards we change the StreamHandler implementation to this:
+
+impl StreamHandler<String, io::Error> for TcpClientActor {
+    fn handle(&mut self, line: String, _ctx: &mut Self::Context) {
+        if let Err(error) = self.recipient.do_send(ReceivedLine { line }) {
+            println!("do_send failed: {}", error);
+        }
+    }
+}
+```
+
+This implementation will try to send a `ReceivedLine` message to the recipient and print an error to the terminal if it fails.  
+
+The final missing piece now is to start the `ConsoleLogger` actor in the `main()` function and pass its address to the `TcpClientActor`:
+
+```rust
+fn main() {
+    let sys = actix::System::new("tcp-test");
+
+    let _logger: Addr<Syn, _> = Arbiter::start(|_| ConsoleLogger);
+
+    let _tcp_client: Addr<Syn, _> = Arbiter::start(|_| {
+        TcpClientActor { recipient: _logger.recipient() }
+    });
+
+    sys.run();
+}
+```
+
+After everything is assembled back together let's use cargo run again and we will see that everything still works! 🎥
