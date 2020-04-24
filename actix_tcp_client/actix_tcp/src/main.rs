@@ -56,7 +56,7 @@ impl Actor for TcpClientActor {
                 Ok(stream) => {
                     println!("very success: {:?}", &stream);
 
-                    let (r, w) = stream.split();
+                    let (r, _) = stream.split(); // (reader, writer)
                     let line_reader = FramedRead::new(r, LinesCodec::new());
                     ctx.add_stream(line_reader);
                 }
