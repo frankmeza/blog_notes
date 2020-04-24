@@ -7,7 +7,7 @@
 ## Project Setup
 
 - `cargo new actix-tcp-example`
-- `cargo run` => `"Hello world!"
+- `cargo run` => `"Hello world!"`
 
 ## The Actor
 
@@ -96,4 +96,36 @@ They have the same code but since the error classes are different, they can't ea
 
 Finally, we block the current thread using the `wait()` method until the `Future` is resolved.
 
-Great! We have successfully opened up a TCP connection to the `towel.blinkenlights.nl` server for the STAR WARS ascii show
+Great! We have successfully opened up a TCP connection to the `towel.blinkenlights.nl` server for the STAR WARS ascii
+
+## Forward messages to other actors
+
+- let's implement the final part of our goal: forwarding received messages to another actor
+
+But first we need to define a message struct. As explained in the last blog post about actix we can do so by implementing the `Message` trait, or deriving it automatically in most cases:
+
+```rust
+#[derive(Message)]
+pub struct ReceivedLine {
+    pub line: String,
+}
+
+```
+
+Now that we know how the message looks like we should implement a second actor that can receive such messages and print them to the terminal:
+
+```rust
+pub struct ConsoleLogger;
+
+impl Actor for ConsoleLogger {
+    type Context = Context<Self>;
+}
+
+impl Handler<ReceivedLine> for ConsoleLogger {
+    type Result = ();
+
+    fn handle(&mut self, message: ReceivedLine, _ctx: &mut Context<Self>) {
+        println!("{}", message.line);
+    }
+}
+```

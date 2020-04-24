@@ -9,6 +9,36 @@ use actix::{
 use tokio_codec::{FramedRead, LinesCodec};
 use tokio_io::AsyncRead;
 
+// CONSOLE LOGGER
+// struct ConsoleLogger
+// #[derive(Message)] struct ReceivedLine
+// impl Actor for ConsoleLogger
+// impl Handler<ReceivedLine> for ConsoleLogger
+
+pub struct ConsoleLogger;
+
+#[derive(Message)]
+pub struct ReceivedLine {
+    pub line: String,
+}
+
+impl Actor for ConsoleLogger {
+    type Context = Context<Self>;
+}
+
+impl Handler<ReceivedLine> for ConsoleLogger {
+    type Result = ();
+
+    fn handle(&mut self, message: ReceivedLine, _ctx: &mut Context<Self>) {
+        println!("{}", message.line);
+    }
+}
+
+// TCP CLIENT
+// struct TcpClientActor;
+// impl Actor for TcpClientActor
+// impl StreamHandler<String, std::io::Error> for TcpClientActor
+
 struct TcpClientActor;
 
 impl Actor for TcpClientActor {
