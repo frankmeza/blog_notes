@@ -60,6 +60,7 @@ impl Actor for TcpClientActor {
 
                     let (r, _) = stream.split(); // (reader, writer)
                     let line_reader = FramedRead::new(r, LinesCodec::new());
+
                     ctx.add_stream(line_reader);
                 }
                 Err(err) => {
@@ -85,11 +86,13 @@ impl StreamHandler<String, std::io::Error> for TcpClientActor {
 
 fn main() {
     let system = actix::System::new("tcp_test");
+    // start the ConsoleLogger in a new thread
+    let logger: Addr<Syn, _> = Arbiter::start(|_| ConsoleLogger);
 
-    let _logger: Addr<Syn, _> = Arbiter::start(|_| ConsoleLogger);
-
+    // start the TcpClientActor with the logger as recipient of delegated action
+    // i.e the tcp_client delegates logging to the console logger
     let _tcp_client: Addr<Syn, _> = Arbiter::start(|_| TcpClientActor {
-        recipient: _logger.recipient(),
+        recipient: logger.recipient(),
     });
 
     system.run();

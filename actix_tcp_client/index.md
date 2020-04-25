@@ -140,7 +140,8 @@ The more generic solution is to use the `Recipient` struct of actix:
 struct TcpClientActor {
     recipient: Recipient<Syn, ReceivedLine>,
 }
-Afterwards we change the StreamHandler implementation to this:
+
+// Afterwards we change the StreamHandler implementation to this:
 
 impl StreamHandler<String, io::Error> for TcpClientActor {
     fn handle(&mut self, line: String, _ctx: &mut Self::Context) {
